@@ -3,8 +3,6 @@
 # Verificar si ollama está instalado
 if ! command -v ollama &> /dev/null; then
     echo "Error: ollama no está instalado."
-    
-    # read -p "¿Deseas instalar ollama usando apt? (s/n): " respuesta_instalacion
     echo "¿Deseas instalar ollama usando apt? (s/n): "
     read respuesta_instalacion
     if [[ "$respuesta_instalacion" =~ ^[Ss]$ ]]; then
@@ -23,14 +21,15 @@ if ! command -v ollama &> /dev/null; then
 fi
 
 # Valores por defecto
-modelo="llama3.2"
+modelo="${BAAASH_MODEL:-llama3.2}" # Usar $BAAASH_MODEL si existe, de lo contrario "llama3.2"
 
 # Función de ayuda
 mostrar_ayuda() {
     echo "Uso: $0 [opciones] \"tu petición de comando aquí\""
     echo "Opciones:"
-    echo "  -h, --help             Muestra esta ayuda"
-    echo "  -m, --modelo <modelo>  Especifica el modelo de ollama a usar (por defecto: llama3.2)"
+    echo "  -h, --help            Muestra esta ayuda"
+    echo "  -m, --model <modelo>  Especifica el modelo de ollama a usar (por defecto: llama3.2)"
+    echo "  -conf, --config       Configura el modelo a usar (lo guarda como variable de entorno \$BAAASH_MODEL)"
     echo ""
     echo "Ejemplo 1: $0 \"instala python usando apt\""
     echo "Ejemplo 2: $0 \"ejecuta un servidor http usando python en la carpeta de trabajo\""
@@ -48,6 +47,13 @@ while [[ $# -gt 0 ]]; do
             modelo="$2"
             shift 2
             ;;
+        -conf|--configurar)
+            echo "Introduce el modelo (ej: llama3.2): "
+            read nuevo_modelo
+            export BAAASH_MODEL="$nuevo_modelo"
+            echo "El modelo default: $BAAASH_MODEL"
+            exit 0
+            ;;
         *)
             break
             ;;
@@ -63,7 +69,7 @@ fi
 # Función para verificar si un modelo está instalado en Ollama
 modelo_instalado() {
     local modelo_a_verificar="$1"
-    if ollama list | grep -q "^$modelo_a_verificar$"; then
+    if ollama list | grep -q "^$modelo_a_verificar "; then
         return 0 # El modelo está instalado
     else
         return 1 # El modelo no está instalado
@@ -99,9 +105,9 @@ echo -e "\nComando generado: $respuesta"
 read -p "¿Deseas ejecutar este comando? (s/n): " respuesta_usuario
 
 if [[ "$respuesta_usuario" =~ ^[Ss]$ ]]; then
-    echo -e "\nEjecutando comando..."
+    echo -e "\nBaaa! Ejecutando comando..."
     eval "$respuesta"
-    echo -e "\nComando ejecutado."
+    echo -e "\nBaaa! Comando ejecutado."
 else
-    echo -e "\nComando no ejecutado."
+    echo -e "\nBaaa! Baaa! Comando no ejecutado."
 fi
