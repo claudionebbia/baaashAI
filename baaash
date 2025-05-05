@@ -1,0 +1,107 @@
+#!/bin/bash
+
+# Verificar si ollama está instalado
+if ! command -v ollama &> /dev/null; then
+    echo "Error: ollama no está instalado."
+    
+    # read -p "¿Deseas instalar ollama usando apt? (s/n): " respuesta_instalacion
+    echo "¿Deseas instalar ollama usando apt? (s/n): "
+    read respuesta_instalacion
+    if [[ "$respuesta_instalacion" =~ ^[Ss]$ ]]; then
+        echo "Instalando ollama..."
+        sudo apt update && sudo apt install -y ollama
+        if command -v ollama &> /dev/null; then
+            echo "ollama se instaló correctamente."
+        else
+            echo "Error: No se pudo instalar ollama. Por favor, instálalo manualmente desde https://ollama.com"
+            exit 1
+        fi
+    else
+        echo "Por favor, instala ollama manualmente desde https://ollama.com"
+        exit 1
+    fi
+fi
+
+# Valores por defecto
+modelo="llama3.2"
+
+# Función de ayuda
+mostrar_ayuda() {
+    echo "Uso: $0 [opciones] \"tu petición de comando aquí\""
+    echo "Opciones:"
+    echo "  -h, --help             Muestra esta ayuda"
+    echo "  -m, --modelo <modelo>  Especifica el modelo de ollama a usar (por defecto: llama3.2)"
+    echo ""
+    echo "Ejemplo 1: $0 \"instala python usando apt\""
+    echo "Ejemplo 2: $0 \"ejecuta un servidor http usando python en la carpeta de trabajo\""
+    echo "Ejemplo 3: $0 \"installa éste programa en el \$PATH\""
+    exit 0
+}
+
+# Procesar opciones
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            mostrar_ayuda
+            ;;
+        -m|--modelo)
+            modelo="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Verificar si se proporcionó una petición
+if [ $# -eq 0 ]; then
+    echo "Error: No se proporcionó ninguna petición."
+    mostrar_ayuda
+fi
+
+# Función para verificar si un modelo está instalado en Ollama
+modelo_instalado() {
+    local modelo_a_verificar="$1"
+    if ollama list | grep -q "^$modelo_a_verificar$"; then
+        return 0 # El modelo está instalado
+    else
+        return 1 # El modelo no está instalado
+    fi
+}
+
+# Verificar si el modelo especificado está instalado
+if ! modelo_instalado "$modelo"; then
+    echo "Error: El modelo '$modelo' no está instalado en Ollama."
+    echo "Puedes instalarlo ejecutando el siguiente comando:"
+    echo "ollama install $modelo"
+    exit 1
+fi
+
+# Capturar la petición del usuario
+peticion="$*"
+
+# Construir el prompt específico para comandos de bash
+prompt="Traduce esta petición a un comando de bash y responde ÚNICAMENTE con el comando, sin explicaciones ni comentarios adicionales: '$peticion'"
+
+echo "Consultando $modelo..."
+
+# Obtener la respuesta del modelo
+respuesta=$(ollama run "$modelo" "$prompt")
+
+# Eliminar posibles comillas y espacios extra
+respuesta=$(echo "$respuesta" | tr -d '"' | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+# Mostrar el comando generado
+echo -e "\nComando generado: $respuesta"
+
+# Preguntar al usuario si desea ejecutar el comando
+read -p "¿Deseas ejecutar este comando? (s/n): " respuesta_usuario
+
+if [[ "$respuesta_usuario" =~ ^[Ss]$ ]]; then
+    echo -e "\nEjecutando comando..."
+    eval "$respuesta"
+    echo -e "\nComando ejecutado."
+else
+    echo -e "\nComando no ejecutado."
+fi
