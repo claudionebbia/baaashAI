@@ -71,16 +71,6 @@ while [[ $# -gt 0 ]]; do
             echo "El modelo default: $BAAASH_MODEL"
             exit 0
             ;;
-        -path|--add-to-path)
-            script_dir=$(dirname "$(realpath "$0")")
-            if [[ ":$PATH:" != *":$script_dir:"* ]]; then
-                echo "export PATH=\"\$PATH:$script_dir\"" >> ~/.bashrc
-                echo "El directorio $script_dir se ha agregado al PATH. Recarga tu terminal o ejecuta 'source ~/.bashrc' para aplicar los cambios."
-            else
-                echo "El directorio $script_dir ya está en el PATH."
-            fi
-            exit 0
-            ;;
         -v|--version)
             echo "Versión actual: $currentVersion"
             exit 0
@@ -119,7 +109,7 @@ fi
 peticion="$*"
 
 # Construir el prompt específico para comandos de bash
-prompt="Traduce esta petición a un comando de bash de una sola linea de codigo y responde ÚNICAMENTE con el comando, sin explicaciones ni comentarios adicionales: '$peticion'"
+prompt="Traduce esta petición a un comando de bash en una sola linea de código y responde ÚNICAMENTE con el comando, sin explicaciones ni comentarios adicionales: '$peticion'"
 
 echo "Consultando $modelo..."
 
