@@ -20,6 +20,11 @@ if ! command -v ollama &> /dev/null; then
         sudo apt update && sudo apt install -y ollama
         if command -v ollama &> /dev/null; then
             echo "ollama se instaló correctamente."
+            echo "Descargando el modelo llamacode..."
+            ollama pull llamacode
+            echo "Si no han salido errores, el modelo se ha instalado correctamente"
+            echo "Si no, por favor instala el modelo manualmente usando el siguiente comando:"
+            echo "ollama pull llamacode"
         else
             echo "Error: No se pudo instalar ollama. Por favor, instálalo manualmente desde https://ollama.com"
             exit 1
